@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
     id("maven-publish")
+    id("org.jreleaser") version "1.22.0"
 }
 
 apply(plugin = "signing")
@@ -67,14 +68,8 @@ publishing {
             url = uri(layout.buildDirectory.dir("repo"))
         }
         maven {
-            name = "sonatype"
-            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-            credentials {
-                username = (findProperty("ossrhUsername") ?: "").toString()
-                password = (findProperty("ossrhPassword") ?: "").toString()
-            }
+            name = "staging"
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
 }
@@ -91,4 +86,51 @@ tasks.register<JavaExec>("generate") {
     description = "Generate API docs and optionally submit to Postman"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("io.github.hahadu.apidoc.ApidocGenerateMainKt")
+}
+
+jreleaser {
+    val ossrhUser = (findProperty("ossrhUsername") ?: "").toString()
+    val ossrhPass = (findProperty("ossrhPassword") ?: "").toString()
+    environment {
+        if (ossrhUser.isNotBlank()) {
+            properties.put("JRELEASER_MAVENCENTRAL_APP_USERNAME", ossrhUser)
+        }
+        if (ossrhPass.isNotBlank()) {
+            properties.put("JRELEASER_MAVENCENTRAL_APP_PASSWORD", ossrhPass)
+        }
+    }
+    project {
+        name.set("ktor-apidoc-plugin")
+        description.set("Ktor apidoc generator")
+        license.set("Apache-2.0")
+        authors.add("hahadu")
+        links {
+            homepage.set("https://github.com/hahadu/apidoc-generate")
+        }
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                create("app") {
+                    setActive("RELEASE")
+                    setStage("FULL")
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    if (ossrhUser.isNotBlank()) {
+                        username.set(ossrhUser)
+                    }
+                    if (ossrhPass.isNotBlank()) {
+                        password.set(ossrhPass)
+                    }
+                    sign.set(false)
+                    stagingRepository(layout.buildDirectory.dir("staging-deploy").get())
+                }
+            }
+        }
+    }
+}
+
+tasks.register("publishToCentral") {
+    group = "publishing"
+    description = "Publish to Central Portal via JReleaser without SCM release"
+    dependsOn("publishMavenJavaPublicationToStagingRepository", "jreleaserDeploy")
 }
