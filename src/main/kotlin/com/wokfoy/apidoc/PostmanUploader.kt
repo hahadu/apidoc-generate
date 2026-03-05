@@ -1,4 +1,4 @@
-package com.wokfoy.apidoc
+package io.github.hahadu.apidoc
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject

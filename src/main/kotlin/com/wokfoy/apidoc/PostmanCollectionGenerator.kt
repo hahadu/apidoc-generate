@@ -1,4 +1,4 @@
-package com.wokfoy.apidoc
+package io.github.hahadu.apidoc
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray

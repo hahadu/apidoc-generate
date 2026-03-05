@@ -1,4 +1,4 @@
-package com.wokfoy.apidoc
+package io.github.hahadu.apidoc
 
 import io.ktor.server.application.*
 import com.google.gson.Gson

@@ -4,11 +4,18 @@ plugins {
     id("maven-publish")
 }
 
-group = "com.wokfoy"
+apply(plugin = "signing")
+
+group = "io.github.hahadu"
 version = "1.0.0"
 
 kotlin {
     jvmToolchain(21)
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 val ktor_version: String by project
@@ -19,16 +26,39 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.typesafe:config:1.4.3")
     implementation("io.github.classgraph:classgraph:4.8.172")
-    implementation(project(":"))
+    implementation(project(":ktor-controllers"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
-            groupId = "com.wokfoy"
+            groupId = "io.github.hahadu"
             artifactId = "ktor-apidoc-plugin"
             version = "1.0.0"
+            pom {
+                name.set("ktor-apidoc-plugin")
+                description.set("Ktor apidoc generator")
+                url.set("https://github.com/hahadu/apidoc-generate")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("hahadu")
+                        name.set("hahadu")
+                        email.set("you@example.com")
+                    }
+                }
+                scm {
+                    url.set("https://github.com/hahadu/ktor-apidoc-plugin")
+                    connection.set("scm:git:https://github.com/hahadu/apidoc-generate.git")
+                    developerConnection.set("scm:git:ssh://github.com/hahadu/apidoc-generate.git")
+                }
+            }
         }
     }
     repositories {
@@ -36,12 +66,29 @@ publishing {
             name = "local"
             url = uri(layout.buildDirectory.dir("repo"))
         }
+        maven {
+            name = "sonatype"
+            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+            credentials {
+                username = (findProperty("ossrhUsername") ?: "").toString()
+                password = (findProperty("ossrhPassword") ?: "").toString()
+            }
+        }
     }
+}
+
+configure<org.gradle.plugins.signing.SigningExtension> {
+    val signingKey = (findProperty("signingKey") ?: "").toString()
+    val signingPassword = (findProperty("signingPassword") ?: "").toString()
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["mavenJava"])
 }
 
 tasks.register<JavaExec>("generate") {
     group = "apidoc"
     description = "Generate API docs and optionally submit to Postman"
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("com.wokfoy.apidoc.ApidocGenerateMainKt")
+    mainClass.set("io.github.hahadu.apidoc.ApidocGenerateMainKt")
 }

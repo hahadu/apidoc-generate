@@ -44,3 +44,4 @@ config/*
 src/main/resources/application.conf
 src/test/resources/application-test.conf
 AGENTS.md
+docs
