@@ -23,6 +23,7 @@ import com.wokfoy.mvc.UrlParams
 import com.wokfoy.mvc.UseAuth
 import io.github.classgraph.ClassGraph
 import java.util.UUID
+import kotlin.collections.iterator
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter

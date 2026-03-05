@@ -132,5 +132,7 @@ jreleaser {
 tasks.register("publishToCentral") {
     group = "publishing"
     description = "Publish to Central Portal via JReleaser without SCM release"
+    // Runs: publishMavenJavaPublicationToStagingRepository -> jreleaserDeploy
+    // This avoids SCM release requirements (e.g., GitHub token).
     dependsOn("publishMavenJavaPublicationToStagingRepository", "jreleaserDeploy")
 }
