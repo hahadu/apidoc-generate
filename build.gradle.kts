@@ -8,7 +8,7 @@ plugins {
 apply(plugin = "signing")
 
 group = "io.github.hahadu"
-version = "1.0.0"
+version = "1.0.1"
 
 kotlin {
     jvmToolchain(21)
@@ -36,7 +36,7 @@ publishing {
             from(components["java"])
             groupId = "io.github.hahadu"
             artifactId = "ktor-apidoc-plugin"
-            version = "1.0.0"
+            version = project.version.toString()
             pom {
                 name.set("ktor-apidoc-plugin")
                 description.set("Ktor apidoc generator")
