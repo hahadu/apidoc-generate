@@ -22,6 +22,7 @@ java {
 val ktor_version: String by project
 
 dependencies {
+    implementation(project(":ktor-annotations"))
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-host-common:$ktor_version")
     implementation("com.google.code.gson:gson:2.11.0")
