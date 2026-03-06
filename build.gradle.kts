@@ -8,7 +8,7 @@ plugins {
 apply(plugin = "signing")
 
 group = "io.github.hahadu"
-version = "1.0.1"
+version = "1.0.3"
 
 kotlin {
     jvmToolchain(21)
@@ -82,11 +82,16 @@ configure<org.gradle.plugins.signing.SigningExtension> {
     sign(publishing.publications["mavenJava"])
 }
 
+val appProject = project(":")
+val appSourceSets = appProject.extensions.getByType<SourceSetContainer>()
+
 tasks.register<JavaExec>("generate") {
     group = "apidoc"
     description = "Generate API docs and optionally submit to Postman"
-    classpath = sourceSets["main"].runtimeClasspath
+    // Include app classes so controller annotations can be discovered.
+    classpath = sourceSets["main"].runtimeClasspath + appSourceSets["main"].runtimeClasspath
     mainClass.set("io.github.hahadu.apidoc.ApidocGenerateMainKt")
+    dependsOn(appProject.tasks.named("classes"))
 }
 
 jreleaser {
